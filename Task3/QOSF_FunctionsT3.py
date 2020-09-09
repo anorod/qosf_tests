@@ -44,6 +44,12 @@ from qiskit.circuit.library.standard_gates.rz import RZGate
 #from qiskit.circuit._utils import _compute_control_matrix
 from qiskit.qasm import pi
 
+def qi(self, qubit, *, q=None, RGates=False):
+	if RGates:
+		self.rz(0, qubit)
+	else:
+		self.append(QIGate(), [qubit], [])
+
 def qh(self, qubit, *, q=None, RGates=False):
 	if RGates:
 		self.rx(pi/2, qubit)
@@ -58,6 +64,40 @@ def qx(self, qubit, *, q=None, RGates=False):
 		self.rz(pi, qubit)
 	else:
 		self.append(QXGate(), [qubit], [])
+
+def qy(self, qubit, *, q=None, RGates=False):
+	if RGates:
+		self.rz(-pi/2, qubit)
+		self.rx(pi, qubit)
+		self.rz(pi/2, qubit)
+	else:
+		self.append(QYGate(), [qubit], [])
+
+def qz(self, qubit, *, q=None, RGates=False):
+	if RGates:
+		self.rz(pi, qubit)
+	else:
+		self.append(QZGate(), [qubit], [])
+
+class QIGate(Gate):
+	r"""Gate that replaces the I Gate as Rz(0)"""
+	
+	def __init__(self, label=None):
+		"""Create new QIGate"""
+		super().__init__('QI', 1, [], label=label)
+		
+	def _define(self):
+		"""
+		Gate I to Rz(0)
+		"""
+		definition = []
+		q = QuantumRegister(1, 'q')
+		rule = [
+			(RZGate(0), [q[0]], [])
+		]
+		for inst in rule:
+			definition.append(inst)
+		self.definition = definition
 
 class QHGate(Gate):
 	r"""Gate that replaces the H Gate as Rx(pi/2) followed by Rz(pi/2)"""
@@ -95,15 +135,59 @@ class QXGate(Gate):
 		definition = []
 		q = QuantumRegister(1, 'q')
 		rule = [
-			(RXGate(-pi), [q[0]], []),
-			(RZGate(pi), [q[0]], []),
-			(RXGate(pi), [q[0]], [])
+			(RZGate(-pi), [q[0]], []),
+			(RXGate(pi), [q[0]], []),
+			(RZGate(pi), [q[0]], [])
+		]
+		for inst in rule:
+			definition.append(inst)
+		self.definition = definition
+		
+class QYGate(Gate):
+	r"""Gate that replaces the Y Gate as Rz(-pi/2)·Rx(pi)·Rz(pi/2)"""
+	
+	def __init__(self, label=None):
+		"""Create new QXGate"""
+		super().__init__('QY', 1, [], label=label)
+		
+	def _define(self):
+		"""
+		Gate Y to Rz(-pi/2)·Rx(pi)·Rz(pi/2)
+		"""
+		definition = []
+		q = QuantumRegister(1, 'q')
+		rule = [
+			(RZGate(-pi/2), [q[0]], []),
+			(RXGate(pi), [q[0]], []),
+			(RZGate(pi/2), [q[0]], [])
 		]
 		for inst in rule:
 			definition.append(inst)
 		self.definition = definition
 		
 
-
+class QZGate(Gate):
+	r"""Gate that replaces the Z Gate as Rz(pi)"""
+	
+	def __init__(self, label=None):
+		"""Create new QZGate"""
+		super().__init__('QZ', 1, [], label=label)
+		
+	def _define(self):
+		"""
+		Gate Z to Rz(pi)
+		"""
+		definition = []
+		q = QuantumRegister(1, 'q')
+		rule = [
+			(RZGate(pi), [q[0]], [])
+		]
+		for inst in rule:
+			definition.append(inst)
+		self.definition = definition
+		
+QuantumCircuit.qi = qi
 QuantumCircuit.qh = qh
 QuantumCircuit.qx = qx
+QuantumCircuit.qy = qy
+QuantumCircuit.qz = qz
