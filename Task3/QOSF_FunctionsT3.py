@@ -79,6 +79,12 @@ def qz(self, qubit, *, q=None, RGates=False):
 	else:
 		self.append(QZGate(), [qubit], [])
 
+def qrx(self, theta, qubit, *, q=None, RGates=False):
+	if RGates:
+		self.rx(theta, qubit)
+	else:
+		self.append(QRXGate(theta), [qubit], [])
+
 class QIGate(Gate):
 	r"""Gate that replaces the I Gate as Rz(0)"""
 	
@@ -165,7 +171,6 @@ class QYGate(Gate):
 			definition.append(inst)
 		self.definition = definition
 		
-
 class QZGate(Gate):
 	r"""Gate that replaces the Z Gate as Rz(pi)"""
 	
@@ -185,9 +190,30 @@ class QZGate(Gate):
 		for inst in rule:
 			definition.append(inst)
 		self.definition = definition
+
+class QRXGate(Gate):
+	r"""Gate that replaces the RX Gate as RX(theta)"""
+	
+	def __init__(self, theta, label=None):
+		"""Create new QRXGate"""
+		super().__init__('qrx', 1, [theta], label=label)
 		
+	def _define(self):
+		"""
+		Gate Rx(theta) to Rx(theta)
+		"""
+		definition = []
+		q = QuantumRegister(1, 'q')
+		rule = [
+			(RXGate(self.params[0]), [q[0]], [])
+		]
+		for inst in rule:
+			definition.append(inst)
+		self.definition = definition
+
 QuantumCircuit.qi = qi
 QuantumCircuit.qh = qh
 QuantumCircuit.qx = qx
 QuantumCircuit.qy = qy
 QuantumCircuit.qz = qz
+QuantumCircuit.qrx = qrx
