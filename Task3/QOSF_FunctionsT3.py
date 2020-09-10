@@ -85,6 +85,25 @@ def qrx(self, theta, qubit, *, q=None, RGates=False):
 	else:
 		self.append(QRXGate(theta), [qubit], [])
 
+def qry(self, theta, qubit, *, q=None, RGates=False):
+	if RGates:
+		if theta = 0:
+			self.rz(0, qubit)
+		else if theta%(2*pi) = 0:
+			self.rz(0, qubit)
+		else:
+			self.rz(-pi/2,qubit)
+			self.rx(theta,qubit)
+			self.rz(pi/2,qubit)
+	else:
+		self.append(QRYGate(theta), [qubit], [])
+
+def qrz(self, phi, qubit, *, q=None, RGates=False):
+	if RGates:
+		self.rz(phi, qubit)
+	else:
+		self.append(QRZGate(phi), [qubit], [])
+
 class QIGate(Gate):
 	r"""Gate that replaces the I Gate as Rz(0)"""
 	
@@ -211,9 +230,62 @@ class QRXGate(Gate):
 			definition.append(inst)
 		self.definition = definition
 
+class QRYGate(Gate):
+	r"""Gate that replaces the RY Gate as RY(theta)"""
+	
+	def __init__(self, theta, label=None):
+		"""Create new QRYGate"""
+		super().__init__('qry', 1, [theta], label=label)
+		
+	def _define(self):
+		"""
+		Gate Ry(theta) to Rz(-pi/2)·Rx(theta)·Rz(pi/2)
+		"""
+		definition = []
+		q = QuantumRegister(1, 'q')
+		if self.params[0] = 0:
+			rule = [
+				(RZGate(0), [q[0]], [])
+			]
+		else if self.params[0]%(2*pi):
+			rule = [
+				(RZGate(0), [q[0]], [])
+			]
+		else:
+			rule = [
+				(RZGate(-pi/2), [q[0]], []),
+				(RXGate(self.params[0]), [q[0]], [])
+				(RZGate(pi/2), [q[0]], [])
+			]
+		for inst in rule:
+			definition.append(inst)
+		self.definition = definition
+
+class QRZGate(Gate):
+	r"""Gate that replaces the RZ Gate as RZ(phi)"""
+	
+	def __init__(self, phi, label=None):
+		"""Create new QRZGate"""
+		super().__init__('qrz', 1, [phi], label=label)
+		
+	def _define(self):
+		"""
+		Gate Rz(phi) to Rz(phi)
+		"""
+		definition = []
+		q = QuantumRegister(1, 'q')
+		rule = [
+			(RZGate(self.params[0]), [q[0]], [])
+		]
+		for inst in rule:
+			definition.append(inst)
+		self.definition = definition
+
 QuantumCircuit.qi = qi
 QuantumCircuit.qh = qh
 QuantumCircuit.qx = qx
 QuantumCircuit.qy = qy
 QuantumCircuit.qz = qz
 QuantumCircuit.qrx = qrx
+QuantumCircuit.qry = qry
+QuantumCircuit.qrz = qrz
