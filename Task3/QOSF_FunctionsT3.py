@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # QSOF - Task 3
+# by Antonio Nó Rodríguez
 #
 # Please write a simple compiler – program, which translates one quantum circuit into another, 
 #  using a restricted set of gates.
