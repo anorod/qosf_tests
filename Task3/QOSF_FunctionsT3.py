@@ -41,7 +41,7 @@ from qiskit.circuit import QuantumCircuit, Qubit
 from qiskit.quantum_info import OneQubitEulerDecomposer
 from qiskit.circuit.library.standard_gates.rx import RXGate
 from qiskit.circuit.library.standard_gates.rz import RZGate
-#from qiskit.circuit.library.standard_gates.cz import CZGate
+from qiskit.circuit.library.standard_gates.z import CZGate
 #from qiskit.circuit._utils import _compute_control_matrix
 from qiskit.qasm import pi
 
@@ -88,9 +88,9 @@ def qrx(self, theta, qubit, *, q=None, RGates=False):
 
 def qry(self, theta, qubit, *, q=None, RGates=False):
 	if RGates:
-		if theta = 0:
+		if theta == 0:
 			self.rz(0, qubit)
-		else if theta%(2*pi) = 0:
+		elif theta%(2*pi) == 0:
 			self.rz(0, qubit)
 		else:
 			self.rz(-pi/2,qubit)
@@ -104,6 +104,21 @@ def qrz(self, phi, qubit, *, q=None, RGates=False):
 		self.rz(phi, qubit)
 	else:
 		self.append(QRZGate(phi), [qubit], [])
+
+def qcnot(self, control_qubit, target_qubit, *, label=None, ctrl_state=None, RGates=False):
+	if RGates:
+		self.qh(target_qubit, RGates=True)
+		self.qcz(control_qubit, target_qubit, RGates=True)
+		self.qh(target_qubit, RGates=True)
+	else:
+		self.append(QCNOTGate(ctrl_state=ctrl_state), [control_qubit, target_qubit], [])
+
+def qcz(self, control_qubit, target_qubit, *, label=None, ctrl_state=None, RGates=False):
+	if RGates:
+		self.append(CZGate(label=label, ctrl_state=ctrl_state), [control_qubit, target_qubit], [])
+	else:
+		self.append(QCZGate(ctrl_state=ctrl_state), [control_qubit, target_qubit], [])
+
 
 class QIGate(Gate):
 	r"""Gate that replaces the I Gate as Rz(0)"""
@@ -190,7 +205,7 @@ class QYGate(Gate):
 		for inst in rule:
 			definition.append(inst)
 		self.definition = definition
-		
+
 class QZGate(Gate):
 	r"""Gate that replaces the Z Gate as Rz(pi)"""
 	
@@ -244,18 +259,18 @@ class QRYGate(Gate):
 		"""
 		definition = []
 		q = QuantumRegister(1, 'q')
-		if self.params[0] = 0:
+		if self.params[0] == 0:
 			rule = [
 				(RZGate(0), [q[0]], [])
 			]
-		else if self.params[0]%(2*pi):
+		elif self.params[0]%(2*pi)==0:
 			rule = [
 				(RZGate(0), [q[0]], [])
 			]
 		else:
 			rule = [
 				(RZGate(-pi/2), [q[0]], []),
-				(RXGate(self.params[0]), [q[0]], [])
+				(RXGate(self.params[0]), [q[0]], []),
 				(RZGate(pi/2), [q[0]], [])
 			]
 		for inst in rule:
@@ -263,7 +278,7 @@ class QRYGate(Gate):
 		self.definition = definition
 
 class QRZGate(Gate):
-	r"""Gate that replaces the RZ Gate as RZ(phi)"""
+	r"""Gate that replaces the RZ Gate as QRZ(phi)"""
 	
 	def __init__(self, phi, label=None):
 		"""Create new QRZGate"""
@@ -282,6 +297,47 @@ class QRZGate(Gate):
 			definition.append(inst)
 		self.definition = definition
 
+class QCNOTGate(ControlledGate):
+	r"""Gate that replaces the CNOT Gate as QH, QCZ and QH"""
+
+	def __init__(self, label=None, ctrl_state=None):
+		"""Create new CNOT gate."""
+		super().__init__('qcnot', 2, [], label=label, num_ctrl_qubits=1, ctrl_state=ctrl_state)
+		self.base_gate = QXGate()
+
+	def _define(self):
+		definition = []
+		q = QuantumRegister(2, 'q')
+		rule = [
+			(QHGate(), [q[1]]),
+			(QCZGate(), [q[0], q[1]], []),
+			(QHGate(), [q[1]])
+		]
+		for inst in rule:
+			definition.append(inst)
+		self.definition = definition
+
+class QCZGate(ControlledGate):
+	r"""Gate that replaces the CZ Gate as QCZ"""
+
+	def __init__(self, label=None, ctrl_state=None):
+		"""Create new CZ gate."""
+		super().__init__('qcz', 2, [], label=label, num_ctrl_qubits=1, ctrl_state=ctrl_state)
+		self.base_gate = QZGate()
+
+	def _define(self):
+		definition = []
+		q = QuantumRegister(2, 'q')
+		rule = [
+			(CZGate(), [q[0], q[1]], [])
+		]
+		for inst in rule:
+			definition.append(inst)
+		self.definition = definition
+
+
+
+
 QuantumCircuit.qi = qi
 QuantumCircuit.qh = qh
 QuantumCircuit.qx = qx
@@ -290,3 +346,6 @@ QuantumCircuit.qz = qz
 QuantumCircuit.qrx = qrx
 QuantumCircuit.qry = qry
 QuantumCircuit.qrz = qrz
+QuantumCircuit.qcz = qcz
+QuantumCircuit.qcnot = qcnot
+QuantumCircuit.qcx = qcnot
