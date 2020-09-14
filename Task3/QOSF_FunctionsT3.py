@@ -53,8 +53,9 @@ def qi(self, qubit, *, q=None, RGates=False):
 
 def qh(self, qubit, *, q=None, RGates=False):
 	if RGates:
-		self.rx(pi/2, qubit)
-		self.rz(pi/2, qubit)
+		self.rx(-pi/2, qubit)
+		self.rz(-pi/2, qubit)
+		self.rx(-pi/2, qubit)
 	else:
 		self.append(QHGate(), [qubit], [])
 
@@ -154,8 +155,9 @@ class QHGate(Gate):
 		definition = []
 		q = QuantumRegister(1, 'q')
 		rule = [
-			(RXGate(pi/2), [q[0]], []),
-			(RZGate(pi/2), [q[0]], [])
+			(RXGate(-pi/2), [q[0]], []),
+			(RZGate(-pi/2), [q[0]], []),
+			(RXGate(-pi/2), [q[0]], [])
 		]
 		for inst in rule:
 			definition.append(inst)
